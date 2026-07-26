@@ -3,34 +3,32 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TENETDrill — Stuck-Pipe Risk Console</title>
+<title>Arqaya — Industrial Intelligence for Critical Operations</title>
+<meta name="description" content="TENETDrill: an on-premise, organization-specific AI system for drilling operations. Zero data egress, zero cloud dependency." />
 <style>
   :root {
     color-scheme: dark;
-    --surface-0:      #0d0d0d;   /* page plane */
-    --surface-1:      #1a1a19;   /* card surface */
-    --surface-2:      #232322;   /* raised / hover surface */
+    --surface-0:      #0d0d0d;
+    --surface-1:      #1a1a19;
+    --surface-2:      #232322;
     --text-primary:   #ffffff;
     --text-secondary: #c3c2b7;
     --text-muted:     #898781;
-    --gridline:       #2c2c2a;
-    --baseline:       #383835;
     --border:         rgba(255,255,255,0.10);
 
-    --series-risk:    #3987e5;   /* categorical slot 1 (blue) -- risk score line */
-    --series-risk-fill: rgba(57,135,229,0.10);
+    --accent-blue:    #3987e5;
+    --accent-cyan:    #38d6e0;
 
-    --status-good:     #0ca30c;
-    --status-warning:  #fab219;
-    --status-serious:  #ec835a;
-    --status-critical: #e66767;
-    --status-neutral:  #6b6a64;
+    --status-good:    #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+    --status-critical:#e66767;
 
     --font: system-ui, -apple-system, "Segoe UI", sans-serif;
   }
 
   * { box-sizing: border-box; }
-
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
     background: var(--surface-0);
@@ -38,433 +36,396 @@
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
   }
+  a { color: inherit; }
 
-  a { color: var(--series-risk); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
 
-  .wrap {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 20px 40px;
-  }
-
-  /* ---------- Top status bar ---------- */
-  .topbar {
+  /* ---------- Nav ---------- */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 22px 20px;
+    padding: 16px 24px;
+    background: rgba(13,13,13,0.85);
+    backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border);
-    margin-bottom: 24px;
+  }
+  .nav .logo { font-size: 17px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
+  .nav .logo span { color: var(--accent-cyan); }
+  .nav-links { display: flex; align-items: center; gap: 22px; font-size: 13.5px; }
+  .nav-links a.plain { color: var(--text-secondary); text-decoration: none; white-space: nowrap; }
+  .nav-links a.plain:hover { color: var(--text-primary); }
+  @media (max-width: 640px) {
+    .nav-links .plain { display: none; }
+    .nav-links { gap: 10px; }
+    .btn-sm { padding: 8px 12px; font-size: 12.5px; }
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: var(--font);
+  }
+  .btn-primary { background: var(--accent-blue); color: #fff; }
+  .btn-primary:hover { background: #2f78d0; }
+  .btn-ghost { background: transparent; border-color: var(--border); color: var(--text-primary); }
+  .btn-ghost:hover { background: var(--surface-2); }
+  .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    min-height: 86vh;
+    display: flex;
+    align-items: center;
     background:
-      linear-gradient(100deg, rgba(13,13,13,0.94) 0%, rgba(13,13,13,0.80) 55%, rgba(13,13,13,0.55) 100%),
+      linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.72) 55%, rgba(13,13,13,0.96) 100%),
+      linear-gradient(90deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.15) 45%, rgba(13,13,13,0.55) 100%),
       url('./public/refine01.jpeg');
     background-size: cover;
     background-position: center 30%;
+    padding: 90px 24px 70px;
   }
-  .topbar .brand {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
-  .topbar h1 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
-    letter-spacing: 0.02em;
-  }
-  .topbar .well-line {
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-  .topbar .well-line b { color: var(--text-primary); font-weight: 600; }
-  .badge {
+  .hero-inner { max-width: 1180px; margin: 0 auto; }
+  .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
+    gap: 8px;
+    font-size: 12.5px;
     font-weight: 600;
-    padding: 4px 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    background: rgba(56,214,224,0.10);
+    border: 1px solid rgba(56,214,224,0.30);
+    padding: 6px 14px;
     border-radius: 999px;
-    background: rgba(12,163,12,0.14);
-    color: var(--status-good);
-    border: 1px solid rgba(12,163,12,0.35);
+    margin-bottom: 22px;
   }
-  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--status-good); }
+  .hero h1 {
+    font-size: clamp(34px, 5.4vw, 60px);
+    line-height: 1.08;
+    font-weight: 700;
+    margin: 0 0 20px;
+    max-width: 820px;
+    letter-spacing: -0.01em;
+  }
+  .hero h1 .hl { color: var(--accent-cyan); }
+  .hero .sub {
+    font-size: clamp(15px, 1.6vw, 19px);
+    color: var(--text-secondary);
+    max-width: 620px;
+    line-height: 1.55;
+    margin: 0 0 34px;
+  }
+  .hero .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 40px; }
+  .hero .proof-row {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .hero .proof-row span { display: flex; align-items: center; gap: 7px; }
+  .hero .proof-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-cyan); }
 
-  /* ---------- Stat tiles ---------- */
-  .cards {
+  /* ---------- Sections ---------- */
+  section { padding: 84px 0; }
+  .section-head { max-width: 640px; margin-bottom: 48px; }
+  .section-tag {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    margin-bottom: 12px;
+  }
+  .section-head h2 {
+    font-size: clamp(26px, 3.4vw, 36px);
+    margin: 0 0 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .section-head p { color: var(--text-secondary); font-size: 15.5px; line-height: 1.6; margin: 0; }
+
+  /* ---------- Problem cards ---------- */
+  .problem-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
-  @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-
-  .card {
+  @media (max-width: 860px) { .problem-grid { grid-template-columns: 1fr; } }
+  .problem-card {
     background: var(--surface-1);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
+    border-radius: 12px;
+    padding: 26px 24px;
   }
-  .card .label {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-transform: uppercase;
+  .problem-card .icon {
+    width: 40px; height: 40px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px;
+    margin-bottom: 18px;
+  }
+  .problem-card.risk .icon { background: rgba(230,103,103,0.14); color: var(--status-critical); }
+  .problem-card.npt .icon { background: rgba(250,178,25,0.14); color: var(--status-warning); }
+  .problem-card.sovereignty .icon { background: rgba(56,214,224,0.14); color: var(--accent-cyan); }
+  .problem-card h3 { font-size: 16.5px; margin: 0 0 10px; font-weight: 700; }
+  .problem-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
+  /* ---------- Architecture ---------- */
+  .arch-section {
+    position: relative;
+    /* refine02-crop.jpg is a pre-cropped, text-free derrick/sky region of
+       refine02.jpeg (see ui/public/ -- generated via PIL, not hand-drawn).
+       This section's height varies with content, so a CSS crop of the full
+       screenshot (which has readable text/logo across most of its area)
+       couldn't reliably stay clean at every viewport; pre-cropping to a
+       region with no text at all sidesteps that regardless of section height. */
+    background:
+      linear-gradient(180deg, rgba(13,13,13,0.93) 0%, rgba(13,13,13,0.90) 60%, rgba(13,13,13,0.96) 100%),
+      url('./public/refine02-crop.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .arch-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    flex-wrap: wrap;
+    margin-top: 44px;
+  }
+  .arch-node {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 18px;
+    flex: 1 1 170px;
+    min-width: 170px;
+    text-align: center;
+  }
+  .arch-node .n {
+    font-size: 11px;
+    color: var(--accent-cyan);
+    font-weight: 700;
     letter-spacing: 0.05em;
     margin-bottom: 8px;
   }
-  .card .value {
-    font-size: 30px;
-    font-weight: 600;
-    line-height: 1.1;
-    font-variant-numeric: proportional-nums;
-  }
-  .card .sub {
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-  .card .note {
-    margin-top: 8px;
-    font-size: 11px;
-    color: var(--text-muted);
-    line-height: 1.4;
-  }
-  .status-pill {
-    display: inline-block;
-    padding: 2px 9px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  /* ---------- Section / panel shell ---------- */
-  .panel {
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin-bottom: 20px;
-  }
-  /* Subtle background accent -- heavily darkened so chat bubbles and text
-     stay fully legible; the source image reads only as a faint texture.
-     Zoomed + positioned toward the lower rig/pier portion of the source
-     photo, cropping out its nav bar so no logo/text reads through. */
-  .panel-copilot {
-    background:
-      linear-gradient(160deg, rgba(26,26,25,0.95) 0%, rgba(26,26,25,0.90) 45%, rgba(26,26,25,0.80) 100%),
-      url('./public/refine02.jpeg');
-    background-size: 180% auto;
-    background-position: center 78%;
-    background-repeat: no-repeat;
-  }
-  .panel-head {
+  .arch-node h4 { font-size: 14.5px; margin: 0 0 6px; font-weight: 700; line-height: 1.3; }
+  .arch-node p { font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+  .arch-arrow {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 20px;
+    padding: 0 8px;
+    flex: 0 0 auto;
+  }
+  @media (max-width: 900px) {
+    .arch-flow { flex-direction: column; }
+    .arch-arrow { transform: rotate(90deg); padding: 6px 0; }
+  }
+  .arch-agents {
+    display: flex;
     gap: 12px;
-    margin-bottom: 14px;
     flex-wrap: wrap;
+    justify-content: center;
   }
-  .panel-head h2 {
-    font-size: 14px;
-    font-weight: 600;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-secondary);
-  }
-  .ghost-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    border-radius: 6px;
-    padding: 5px 10px;
+  .arch-agent-chip {
+    background: rgba(57,135,229,0.10);
+    border: 1px solid rgba(57,135,229,0.30);
+    color: var(--accent-blue);
     font-size: 12px;
-    cursor: pointer;
-    font-family: var(--font);
-  }
-  .ghost-btn:hover { background: var(--surface-2); color: var(--text-primary); }
-
-  /* ---------- Depth picker ---------- */
-  .depth-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
-  .depth-row label { font-size: 13px; color: var(--text-secondary); }
-  .depth-row input[type="number"] {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    border-radius: 6px;
-    padding: 7px 10px;
-    font-family: var(--font);
-    font-size: 13px;
-    width: 120px;
-  }
-  .primary-btn {
-    background: var(--series-risk);
-    border: none;
-    color: #fff;
-    border-radius: 6px;
-    padding: 7px 14px;
-    font-size: 13px;
     font-weight: 600;
-    cursor: pointer;
-    font-family: var(--font);
-  }
-  .primary-btn:hover { opacity: 0.9; }
-  .depth-hint { font-size: 12px; color: var(--text-muted); }
-
-  /* ---------- Chart ---------- */
-  .chart-wrap { position: relative; height: 320px; }
-  .legend-row {
-    display: flex;
-    gap: 18px;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-  }
-  .legend-item { display: flex; align-items: center; gap: 6px; }
-  .legend-swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
-  .legend-swatch.area { width: 12px; height: 10px; border-radius: 2px; opacity: 0.55; }
-
-  table.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  table.data-table th, table.data-table td {
-    text-align: left;
-    padding: 7px 10px;
-    border-bottom: 1px solid var(--gridline);
-    font-variant-numeric: tabular-nums;
-  }
-  table.data-table th {
-    color: var(--text-muted);
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-  }
-  table.data-table td:first-child, table.data-table th:first-child { font-variant-numeric: tabular-nums; }
-
-  /* ---------- Alert box ---------- */
-  .alert-box {
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin-bottom: 20px;
-    border: 1px solid var(--status-critical);
-    background: rgba(230,103,103,0.08);
-  }
-  .alert-box.level-low, .alert-box.level-mild-moderate {
-    border-color: var(--status-good);
-    background: rgba(12,163,12,0.07);
-  }
-  .alert-box.level-elevated {
-    border-color: var(--status-serious);
-    background: rgba(236,131,90,0.08);
-  }
-  .alert-box.level-high {
-    border-color: var(--status-critical);
-    background: rgba(230,103,103,0.10);
-  }
-  .alert-box.level-unmonitored, .alert-box.level-stale-flag {
-    border-color: var(--status-neutral);
-    background: rgba(107,106,100,0.10);
-  }
-  .alert-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-  }
-  .alert-head .title {
-    font-size: 15px;
-    font-weight: 700;
-  }
-  .freshness-tag {
-    font-size: 11px;
-    color: var(--text-muted);
-    border: 1px solid var(--border);
+    padding: 5px 12px;
     border-radius: 999px;
-    padding: 2px 8px;
-  }
-  .alert-explain {
-    font-size: 13.5px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    margin-bottom: 12px;
-  }
-  .alert-actions { margin: 0; padding-left: 18px; }
-  .alert-actions li {
-    font-size: 13.5px;
-    color: var(--text-primary);
-    margin-bottom: 5px;
-    line-height: 1.4;
-  }
-  .alert-meta {
-    margin-top: 12px;
-    font-size: 11.5px;
-    color: var(--text-muted);
   }
 
-  /* ---------- Copilot chat ---------- */
-  .chat-log {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 320px;
-    overflow-y: auto;
-    padding-right: 4px;
-    margin-bottom: 12px;
-  }
-  .chat-msg {
-    max-width: 85%;
-    padding: 9px 12px;
-    border-radius: 10px;
-    font-size: 13.5px;
-    line-height: 1.45;
-  }
-  .chat-msg.user {
-    align-self: flex-end;
-    background: var(--series-risk);
-    color: #fff;
-  }
-  .chat-msg.agent {
-    align-self: flex-start;
-    background: var(--surface-2);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-  }
-  .chat-input-row { display: flex; gap: 8px; }
-  .chat-input-row input {
-    flex: 1;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    border-radius: 6px;
-    padding: 9px 12px;
-    font-family: var(--font);
-    font-size: 13.5px;
-  }
-
-  footer {
+  /* ---------- Final CTA ---------- */
+  .cta-band {
     text-align: center;
-    font-size: 12px;
-    color: var(--text-muted);
-    padding: 24px 0 8px;
-    letter-spacing: 0.02em;
+    padding: 90px 24px;
   }
+  .cta-band h2 { font-size: clamp(24px, 3vw, 32px); margin: 0 0 16px; font-weight: 700; }
+  .cta-band p { color: var(--text-secondary); max-width: 520px; margin: 0 auto 32px; font-size: 15px; }
 
-  .loading-note { font-size: 12px; color: var(--text-muted); }
+  /* ---------- Footer ---------- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 24px;
+  }
+  .footer-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .footer-brand { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .footer-meta { font-size: 12.5px; color: var(--text-muted); line-height: 1.7; }
+  .footer-meta a { color: var(--text-muted); }
+  .footer-meta a:hover { color: var(--accent-cyan); }
+  .footer-tag { font-size: 12px; color: var(--text-muted); }
 </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="brand">
-      <h1>TENETDrill</h1>
-      <span class="well-line">Well: <b>VOLVE NORTH SEA</b> &middot; <span id="wellId">—</span></span>
+
+  <nav class="nav">
+    <div class="logo">Arqaya <span>TENETDrill</span></div>
+    <div class="nav-links">
+      <a class="plain" href="#architecture">Architecture</a>
+      <a class="plain" href="#problem">The Problem</a>
+      <a class="btn btn-ghost btn-sm" href="https://github.com/Neel-K26/arqaya-demo" target="_blank" rel="noopener">View GitHub</a>
+      <a class="btn btn-primary btn-sm" href="./app.html">Try Demo</a>
     </div>
-    <span class="badge"><span class="dot"></span>All inference on-premise</span>
-  </div>
+  </nav>
 
-  <div class="wrap">
-
-    <div class="cards" id="cards">
-      <div class="card">
-        <div class="label">Stuck Pipe Risk</div>
-        <div class="value" id="cardRiskValue">—</div>
-        <div class="sub" id="cardRiskLevel">Loading…</div>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow"><span class="dot"></span>Live demo running on real Volve field data</span>
+      <h1>Industrial Intelligence for <span class="hl">Critical Operations</span></h1>
+      <p class="sub">
+        TENETDrill fine-tunes a small language model on a single operator's own drilling data and
+        serves it entirely on-premise — no cloud API, no external inference, no data egress. Built for
+        organizations where the data never leaves the building.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="./app.html">Try Demo &rarr;</a>
+        <a class="btn btn-ghost" href="https://github.com/Neel-K26/arqaya-demo" target="_blank" rel="noopener">View GitHub</a>
       </div>
-      <div class="card">
-        <div class="label">Well Integrity</div>
-        <div class="value" id="cardIntegrityValue">—</div>
-        <div class="sub">of monitored depth, low anomaly</div>
-        <div class="note" id="cardIntegrityNote"></div>
-      </div>
-      <div class="card">
-        <div class="label">NPT</div>
-        <div class="value" id="cardNptValue">—</div>
-        <div class="sub">risk-flagged intervals</div>
-        <div class="note" id="cardNptNote"></div>
-      </div>
-      <div class="card">
-        <div class="label">Total Depth</div>
-        <div class="value" id="cardDepthValue">—</div>
-        <div class="sub">measured depth</div>
+      <div class="proof-row">
+        <span><span class="dot"></span>Physics-grounded risk detection</span>
+        <span><span class="dot"></span>Zero cloud dependency</span>
+        <span><span class="dot"></span>Runs offline on CPU (Ollama / GGUF)</span>
       </div>
     </div>
+  </header>
 
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Risk over depth</h2>
-        <button class="ghost-btn" id="toggleTableBtn">View as table</button>
-      </div>
-      <div class="legend-row">
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-risk)"></span>TENETDrill risk score (EWMA, 0&ndash;1)</span>
-        <span class="legend-item"><span class="legend-swatch area" style="background:var(--status-critical)"></span>Actual stuck-pipe event (STUCK_RT, historical label)</span>
-      </div>
-      <div class="chart-wrap"><canvas id="riskChart"></canvas></div>
-      <div id="riskTableWrap" style="display:none; max-height:360px; overflow:auto; margin-top:12px;"></div>
-      <div class="depth-hint" style="margin-top:8px;">Click anywhere on the chart to inspect that depth below.</div>
+  <section id="problem" class="wrap">
+    <div class="section-head">
+      <div class="section-tag">The Problem</div>
+      <h2>Drilling operations run on data no one is allowed to send to the cloud</h2>
+      <p>Stuck-pipe events, non-productive time, and third-party data exposure are three faces of the
+        same underlying problem: operators need intelligence built on their own telemetry, without
+        handing that telemetry to someone else's model.</p>
     </div>
+    <div class="problem-grid">
+      <div class="problem-card risk">
+        <div class="icon">&#9888;</div>
+        <h3>Stuck-pipe risk</h3>
+        <p>A stuck-pipe event can halt operations for days and put both the asset and the crew at risk.
+          Early, physically-grounded warning — not a black-box score — is the highest-leverage
+          intervention available to a driller.</p>
+      </div>
+      <div class="problem-card npt">
+        <div class="icon">&#9203;</div>
+        <h3>Non-productive time</h3>
+        <p>NPT from stuck pipe and related drag events is routinely one of the largest controllable
+          cost drivers on a well. Catching the precursor signature meters before the event, not after
+          it, is the difference that matters.</p>
+      </div>
+      <div class="problem-card sovereignty">
+        <div class="icon">&#128274;</div>
+        <h3>Data sovereignty</h3>
+        <p>Sending live drilling telemetry to a third-party cloud API isn't acceptable for many
+          operators. TENETDrill fine-tunes and serves its model entirely on-premise — the data never
+          leaves the rig network.</p>
+      </div>
+    </div>
+  </section>
 
-    <div class="panel">
-      <div class="panel-head"><h2>Inspect depth</h2></div>
-      <div class="depth-row">
-        <label for="depthInput">Measured depth (m)</label>
-        <input type="number" id="depthInput" step="0.1" />
-        <button class="primary-btn" id="depthGoBtn">Go</button>
-        <span class="depth-hint" id="depthRangeHint"></span>
+  <section id="architecture" class="arch-section">
+    <div class="wrap" style="padding: 84px 24px;">
+      <div class="section-head">
+        <div class="section-tag">Architecture</div>
+        <h2>One pipeline, entirely on-premise</h2>
+        <p>Enterprise telemetry is refined into an Institutional Language Model, specialized further
+          into an organization-specific model, and orchestrated by a Supervisor Agent that composes
+          the final driller-facing decision — grounded in physics rules and validated detector output,
+          not a black box.</p>
       </div>
 
-      <div class="alert-box" id="alertBox">
-        <div class="alert-head">
-          <span class="title" id="alertTitle">Supervisor Agent</span>
-          <span class="freshness-tag" id="alertFreshness"></span>
+      <div class="arch-flow">
+        <div class="arch-node">
+          <div class="n">01</div>
+          <h4>Enterprise Data</h4>
+          <p>Rig telemetry, drilling logs, well history</p>
         </div>
-        <div class="alert-explain" id="alertExplain">Loading…</div>
-        <ol class="alert-actions" id="alertActions"></ol>
-        <div class="alert-meta" id="alertMeta"></div>
-      </div>
-
-      <div class="panel-head"><h2>Telemetry at this depth</h2></div>
-      <div style="overflow-x:auto;">
-        <table class="data-table" id="telemetryTable">
-          <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node">
+          <div class="n">02</div>
+          <h4>Institutional Language Model (ILM)</h4>
+          <p>Fine-tuned on this well's own readings and physics-rule reasoning</p>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node">
+          <div class="n">03</div>
+          <h4>Organization-Specific Model</h4>
+          <p>LoRA-adapted, quantized, served offline via Ollama</p>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node">
+          <div class="n">04</div>
+          <h4>Supervisor Agent</h4>
+          <p>Fuses detector output + physics reasons into one decision</p>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node">
+          <div class="n">05</div>
+          <h4>Drill / Flow / Edge Agents</h4>
+          <p style="margin-bottom:10px;">Downstream task-specific agents</p>
+          <div class="arch-agents">
+            <span class="arch-agent-chip">Drill</span>
+            <span class="arch-agent-chip">Flow</span>
+            <span class="arch-agent-chip">Edge</span>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="panel panel-copilot">
-      <div class="panel-head"><h2>Agent Copilot</h2></div>
-      <div class="chat-log" id="chatLog">
-        <div class="chat-msg agent">Ask me about any depth &mdash; e.g. "is stuck-pipe risk elevated at 800m?" or "what should I do at 512m?"</div>
-      </div>
-      <div class="chat-input-row">
-        <input type="text" id="chatInput" placeholder="Ask the copilot…" />
-        <button class="primary-btn" id="chatSendBtn">Send</button>
-      </div>
+  <div class="cta-band">
+    <h2>See it running on real field data</h2>
+    <p>The demo below runs TENETDrill's full detection and decision pipeline against real Volve North
+      Sea drilling telemetry — including the physics reasoning behind every call.</p>
+    <div class="cta-row" style="justify-content:center;">
+      <a class="btn btn-primary" href="./app.html">Try Demo &rarr;</a>
+      <a class="btn btn-ghost" href="https://github.com/Neel-K26/arqaya-demo" target="_blank" rel="noopener">View GitHub</a>
     </div>
-
   </div>
 
-  <footer>All inference on-premise &middot; Zero data egress</footer>
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Arqaya Private Limited</div>
+        <div class="footer-meta">
+          Pune, India<br />
+          <a href="mailto:info@arqaya.in">info@arqaya.in</a>
+        </div>
+      </div>
+      <div class="footer-tag">All inference on-premise &middot; Zero data egress</div>
+    </div>
+  </footer>
 
-  <script src="./vendor/chart.umd.min.js"></script>
-  <script src="./env.js"></script>
-  <script src="./app.js"></script>
 </body>
 </html>
