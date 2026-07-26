@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.gguf
+ilm/adapters/*/gguf/
+node_modules/
+.DS_Store
+*.log
+
+# Raw time-indexed telemetry (~409MB) -- exceeds GitHub's 100MB limit and is
+# not used anywhere at runtime; only the depth CSV (Step 1 input) and the
+# clean_depth/risk_scored parquets (what the backend actually reads) matter.
+data/volve/*time.csv

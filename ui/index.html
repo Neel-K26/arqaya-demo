@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TENETDrill — Stuck-Pipe Risk Console</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --surface-0:      #0d0d0d;   /* page plane */
+    --surface-1:      #1a1a19;   /* card surface */
+    --surface-2:      #232322;   /* raised / hover surface */
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+
+    --series-risk:    #3987e5;   /* categorical slot 1 (blue) -- risk score line */
+    --series-risk-fill: rgba(57,135,229,0.10);
+
+    --status-good:     #0ca30c;
+    --status-warning:  #fab219;
+    --status-serious:  #ec835a;
+    --status-critical: #e66767;
+    --status-neutral:  #6b6a64;
+
+    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--series-risk); }
+
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  /* ---------- Top status bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .topbar .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .topbar h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  .topbar .well-line {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .topbar .well-line b { color: var(--text-primary); font-weight: 600; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(12,163,12,0.14);
+    color: var(--status-good);
+    border: 1px solid rgba(12,163,12,0.35);
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ---------- Stat tiles ---------- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .card .label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .card .value {
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.1;
+    font-variant-numeric: proportional-nums;
+  }
+  .card .sub {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .card .note {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .status-pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  /* ---------- Section / panel shell ---------- */
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .panel-head h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+  }
+  .ghost-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+  .ghost-btn:hover { background: var(--surface-2); color: var(--text-primary); }
+
+  /* ---------- Depth picker ---------- */
+  .depth-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .depth-row label { font-size: 13px; color: var(--text-secondary); }
+  .depth-row input[type="number"] {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-family: var(--font);
+    font-size: 13px;
+    width: 120px;
+  }
+  .primary-btn {
+    background: var(--series-risk);
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+  .primary-btn:hover { opacity: 0.9; }
+  .depth-hint { font-size: 12px; color: var(--text-muted); }
+
+  /* ---------- Chart ---------- */
+  .chart-wrap { position: relative; height: 320px; }
+  .legend-row {
+    display: flex;
+    gap: 18px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
+  .legend-swatch.area { width: 12px; height: 10px; border-radius: 2px; opacity: 0.55; }
+
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.data-table th, table.data-table td {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--gridline);
+    font-variant-numeric: tabular-nums;
+  }
+  table.data-table th {
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  table.data-table td:first-child, table.data-table th:first-child { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Alert box ---------- */
+  .alert-box {
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--status-critical);
+    background: rgba(230,103,103,0.08);
+  }
+  .alert-box.level-low, .alert-box.level-mild-moderate {
+    border-color: var(--status-good);
+    background: rgba(12,163,12,0.07);
+  }
+  .alert-box.level-elevated {
+    border-color: var(--status-serious);
+    background: rgba(236,131,90,0.08);
+  }
+  .alert-box.level-high {
+    border-color: var(--status-critical);
+    background: rgba(230,103,103,0.10);
+  }
+  .alert-box.level-unmonitored, .alert-box.level-stale-flag {
+    border-color: var(--status-neutral);
+    background: rgba(107,106,100,0.10);
+  }
+  .alert-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .alert-head .title {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .freshness-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+  .alert-explain {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .alert-actions { margin: 0; padding-left: 18px; }
+  .alert-actions li {
+    font-size: 13.5px;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  .alert-meta {
+    margin-top: 12px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  /* ---------- Copilot chat ---------- */
+  .chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin-bottom: 12px;
+  }
+  .chat-msg {
+    max-width: 85%;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.45;
+  }
+  .chat-msg.user {
+    align-self: flex-end;
+    background: var(--series-risk);
+    color: #fff;
+  }
+  .chat-msg.agent {
+    align-self: flex-start;
+    background: var(--surface-2);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+  .chat-input-row { display: flex; gap: 8px; }
+  .chat-input-row input {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-family: var(--font);
+    font-size: 13.5px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 24px 0 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .loading-note { font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <h1>TENETDrill</h1>
+      <span class="well-line">Well: <b>VOLVE NORTH SEA</b> &middot; <span id="wellId">—</span></span>
+    </div>
+    <span class="badge"><span class="dot"></span>All inference on-premise</span>
+  </div>
+
+  <div class="wrap">
+
+    <div class="cards" id="cards">
+      <div class="card">
+        <div class="label">Stuck Pipe Risk</div>
+        <div class="value" id="cardRiskValue">—</div>
+        <div class="sub" id="cardRiskLevel">Loading…</div>
+      </div>
+      <div class="card">
+        <div class="label">Well Integrity</div>
+        <div class="value" id="cardIntegrityValue">—</div>
+        <div class="sub">of monitored depth, low anomaly</div>
+        <div class="note" id="cardIntegrityNote"></div>
+      </div>
+      <div class="card">
+        <div class="label">NPT</div>
+        <div class="value" id="cardNptValue">—</div>
+        <div class="sub">risk-flagged intervals</div>
+        <div class="note" id="cardNptNote"></div>
+      </div>
+      <div class="card">
+        <div class="label">Total Depth</div>
+        <div class="value" id="cardDepthValue">—</div>
+        <div class="sub">measured depth</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Risk over depth</h2>
+        <button class="ghost-btn" id="toggleTableBtn">View as table</button>
+      </div>
+      <div class="legend-row">
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-risk)"></span>TENETDrill risk score (EWMA, 0&ndash;1)</span>
+        <span class="legend-item"><span class="legend-swatch area" style="background:var(--status-critical)"></span>Actual stuck-pipe event (STUCK_RT, historical label)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="riskChart"></canvas></div>
+      <div id="riskTableWrap" style="display:none; max-height:360px; overflow:auto; margin-top:12px;"></div>
+      <div class="depth-hint" style="margin-top:8px;">Click anywhere on the chart to inspect that depth below.</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Inspect depth</h2></div>
+      <div class="depth-row">
+        <label for="depthInput">Measured depth (m)</label>
+        <input type="number" id="depthInput" step="0.1" />
+        <button class="primary-btn" id="depthGoBtn">Go</button>
+        <span class="depth-hint" id="depthRangeHint"></span>
+      </div>
+
+      <div class="alert-box" id="alertBox">
+        <div class="alert-head">
+          <span class="title" id="alertTitle">Supervisor Agent</span>
+          <span class="freshness-tag" id="alertFreshness"></span>
+        </div>
+        <div class="alert-explain" id="alertExplain">Loading…</div>
+        <ol class="alert-actions" id="alertActions"></ol>
+        <div class="alert-meta" id="alertMeta"></div>
+      </div>
+
+      <div class="panel-head"><h2>Telemetry at this depth</h2></div>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="telemetryTable">
+          <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Agent Copilot</h2></div>
+      <div class="chat-log" id="chatLog">
+        <div class="chat-msg agent">Ask me about any depth &mdash; e.g. "is stuck-pipe risk elevated at 800m?" or "what should I do at 512m?"</div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Ask the copilot…" />
+        <button class="primary-btn" id="chatSendBtn">Send</button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>All inference on-premise &middot; Zero data egress</footer>
+
+  <script src="./vendor/chart.umd.min.js"></script>
+  <script src="./env.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
