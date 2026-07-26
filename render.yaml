@@ -2,7 +2,7 @@ services:
   - type: web
     name: tenetdrill-api
     env: python
-    plan: free
+    plan: starter  # Render Blueprint's free-tier plan name (not "free")
     buildCommand: pip install -r api/requirements.txt
     startCommand: uvicorn api.app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
@@ -10,12 +10,10 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
 
-  - type: web
+  - type: static  # static sites are their own service type, not env: static on a web service
     name: tenetdrill-ui
-    env: static
-    plan: free
+    plan: starter
     staticPublishPath: ./ui
-    buildCommand: ""
     # ui/env.js has no build-time env substitution (plain static site, no
     # Vite step) -- after tenetdrill-api deploys, edit ui/env.js's
     # window.TENETDRILL_API_URL to that service's URL and redeploy, or wire
